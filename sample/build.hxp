@@ -1,0 +1,43 @@
+package;
+
+import hxp.*;
+
+class Build extends hxp.Script {
+	
+	public function new () {
+		
+		super ();
+		
+		var hxml = HXML.fromString ("
+			TestLib
+			-cp lib
+			-cpp lib/obj
+			-D static_link
+		");
+		hxml.build ();
+		
+		System.copyFile ("lib/obj/liboutput.a", "lib/obj/libtest.a");
+		
+		var hxml = HXML.fromString ("
+			TestLib2
+			-cp lib
+			-cpp lib/obj2
+			-D static_link
+		");
+		hxml.build ();
+		
+		System.copyFile ("lib/obj2/liboutput.a", "lib/obj/libtest2.a");
+		
+		var hxcppPath = Haxelib.getPath (new Haxelib ("hxcpp"));
+		
+		if (System.hostPlatform == MAC) {
+			
+			System.runCommand ("", "g++", [ "src/main.cpp", "-I", "lib/obj/include", "-I", "lib/obj2/include", "-I", Path.combine (hxcppPath, "include"), "-L", "lib/obj", "-L", "lib/obj2", "-ltest", "-ltest2","-o", "bin/sample" ]);
+			System.runCommand ("bin", "chmod", [ "755", "./sample" ]);
+			System.runCommand ("bin", "./sample", []);
+			
+		}
+		
+	}
+	
+}
